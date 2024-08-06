@@ -1,0 +1,4 @@
+export enum OfficeTypes {
+  ADMINISTRATOR = 'ADMINISTRATOR',
+  ACCOUNT_MANAGER = 'MANAGER',
+}
