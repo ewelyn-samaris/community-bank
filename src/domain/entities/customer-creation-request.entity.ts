@@ -6,11 +6,11 @@ import { v4 as uuidv4 } from 'uuid';
 export class CustomerCreationRequest {
   static requests: CustomerCreationRequest[] = [];
   id: string;
-  cpf: string;
+  nationalIdentifier: string;
   name: string;
-  cellphone: string;
+  telephone: string;
   address: string;
-  averageIncome: number;
+  averageCapital: number;
   region: ManagedRegion;
   status: RequestStatus;
   createdAt: Date;
@@ -18,11 +18,11 @@ export class CustomerCreationRequest {
 
   constructor(customerCreationRequestDTO: CreateCustomerDTO) {
     this.id = uuidv4();
-    this.cpf = customerCreationRequestDTO.cpf;
+    this.nationalIdentifier = customerCreationRequestDTO.nationalIdentifier;
     this.name = customerCreationRequestDTO.name.toUpperCase();
-    this.cellphone = customerCreationRequestDTO.cellphone;
-    this.averageIncome = customerCreationRequestDTO.averageIncome;
-    this.address = customerCreationRequestDTO.address;
+    this.telephone = customerCreationRequestDTO.telephone;
+    this.averageCapital = customerCreationRequestDTO.averageCapital;
+    this.address = customerCreationRequestDTO.address.toUpperCase();
     this.region = customerCreationRequestDTO.region;
     this.status = RequestStatus.PENDING;
     this.createdAt = new Date();

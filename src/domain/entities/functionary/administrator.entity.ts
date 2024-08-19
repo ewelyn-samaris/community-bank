@@ -1,4 +1,4 @@
-import { CreateFunctionaryDTO } from '../../application/dtos/create-functionary.dto';
+import { CreateFunctionaryDTO } from '../../../application/dtos/create-functionary.dto';
 import { Functionary } from './functionary.entity';
 
 export class Administrator extends Functionary {

@@ -1,4 +1,4 @@
-import { CreateTransactionDTO } from '../../application/dtos/create-transaction.dto';
+import { CreateTransactionDTO } from '../../../application/dtos/create-transaction.dto';
 import { Transaction } from './transaction.entity';
 
 export class Withdraw extends Transaction {

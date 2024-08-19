@@ -1,12 +1,11 @@
-import { CreateFunctionaryDTO } from '../../application/dtos/create-functionary.dto';
+import { ManagedRegion } from '../../enums/managed-regions.enum';
 import { Functionary } from './functionary.entity';
-import { ManagedRegion } from '../enums/managed-regions.enum';
-import { Customer } from './customer.entity';
+import { CreateFunctionaryDTO } from '../../../application/dtos/create-functionary.dto';
 
 export class AccountManager extends Functionary {
   static managers: AccountManager[] = [];
   managedRegion: ManagedRegion;
-  customers?: Customer[];
+  customersIds?: string[] = [];
 
   constructor(functionaryDTO: CreateFunctionaryDTO) {
     super(functionaryDTO);

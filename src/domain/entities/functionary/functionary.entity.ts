@@ -1,7 +1,7 @@
+import { StatusType } from '../../enums/status-type.enum';
+import { OfficeTypes } from '../../enums/office-types.enum';
 import { v4 as uuidv4 } from 'uuid';
-import { CreateFunctionaryDTO } from '../../application/dtos/create-functionary.dto';
-import { OfficeTypes } from '../enums/office-types.enum';
-import { StatusType } from '../enums/status-type.enum';
+import { CreateFunctionaryDTO } from '../../../application/dtos/create-functionary.dto';
 
 export abstract class Functionary {
   id: string;
