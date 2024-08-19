@@ -1,5 +1,5 @@
-import { CreateFunctionaryDTO } from '../../application/dtos/create-functionary.dto';
-import { Administrator } from '../entities/administrator.entity';
+import { Administrator } from '../../entities/functionary/administrator.entity';
+import { CreateFunctionaryDTO } from '../../../application/dtos/create-functionary.dto';
 
 export abstract class AdministratorFactory {
   static create(createAdministratorDTO: CreateFunctionaryDTO): Administrator {
