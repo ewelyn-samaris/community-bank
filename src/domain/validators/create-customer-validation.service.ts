@@ -1,27 +1,26 @@
-import { Injectable } from '@nestjs/common';
-import { CreateCustomerDTO } from '../../application/dtos/create-customer.dto';
+import { Inject, Injectable } from '@nestjs/common';
 import { ErrorContext } from '../enums/error-context.enum';
 import { ErrorMessage } from '../enums/error-message.enum';
-import { CustomerService } from '../services/customer.service';
-import { AppErrorService } from '../services/app-error.service';
-import { Customer } from '../entities/customer.entity';
+import { ICustomerService } from '../interfaces/customer-service.interface';
+import { IAppErrorService } from '../interfaces/apperror-service.interface';
+import { Customer } from '../entities/customer/customer.entity';
 
 @Injectable()
 export class CreateCustomerValidationService {
   private errorContext: ErrorContext = ErrorContext.CREATE_CUSTOMER;
 
   constructor(
-    private readonly customerService: CustomerService,
-    private readonly appErrorService: AppErrorService,
+    @Inject('ICustomerService') private readonly iCustomerService: ICustomerService,
+    @Inject('IAppErrorService') private readonly iAppErrorService: IAppErrorService,
   ) {}
 
-  private doesCustomerAlreadyExist(cpf: string): void {
-    const existingCustomer: Customer = this.customerService.getCustomerByCpf(cpf);
+  private doesCustomerAlreadyExist(nationalIdentifier: string): void {
+    const existingCustomer: Customer = this.iCustomerService.getCustomerByNationalIdentifier(nationalIdentifier);
     if (existingCustomer)
-      throw this.appErrorService.createError(ErrorMessage.CUSTOMER_ALREADY_EXISTS, this.errorContext);
+      throw this.iAppErrorService.createError(ErrorMessage.CUSTOMER_ALREADY_EXISTS, this.errorContext);
   }
 
-  validate(customerCreationRequestDTO: CreateCustomerDTO): void {
-    this.doesCustomerAlreadyExist(customerCreationRequestDTO.cpf);
+  validate(nationalIdentifier: string): void {
+    this.doesCustomerAlreadyExist(nationalIdentifier);
   }
 }

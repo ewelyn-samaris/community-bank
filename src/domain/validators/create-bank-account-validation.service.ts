@@ -1,11 +1,11 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CreateBankAccountDTO } from '../../application/dtos/create-bank-account.dto';
 import { AccountType } from '../enums/account-type.enum';
-import { ErrorMessage } from '../enums/error-message.enum';
 import { ErrorContext } from '../enums/error-context.enum';
-import { AppErrorService } from '../services/app-error.service';
-import { Customer } from '../entities/customer.entity';
-import { CustomerService } from '../services/customer.service';
+import { ICustomerService } from '../interfaces/customer-service.interface';
+import { ErrorMessage } from '../enums/error-message.enum';
+import { IAppErrorService } from '../interfaces/apperror-service.interface';
+import { Customer } from '../entities/customer/customer.entity';
 import 'dotenv/config';
 
 @Injectable()
@@ -13,22 +13,21 @@ export class CreateBankAccountValidationService {
   private errorContext = ErrorContext.CREATE_ACCOUNT;
 
   constructor(
-    private readonly appErrorService: AppErrorService,
-    @Inject(forwardRef(() => CustomerService))
-    private readonly customerService: CustomerService,
+    @Inject('IAppErrorService') private readonly iAppErrorService: IAppErrorService,
+    @Inject('ICustomerService') private readonly iCustomerService: ICustomerService,
   ) {}
 
   private doesCustomerExists(customerId: string): Customer {
-    const customer = this.customerService.getCustomerById(customerId);
-    if (customer.id !== customerId) {
-      throw this.appErrorService.createError(ErrorMessage.CUSTOMER_DOES_NOT_EXIST, this.errorContext);
+    const customer = this.iCustomerService.getCustomerById(customerId);
+    if (!customer) {
+      throw this.iAppErrorService.createError(ErrorMessage.CUSTOMER_NOT_FOUND, this.errorContext);
     }
     return customer;
   }
 
   private doesCustomerHasMinAverageIncome(customer: Customer): void {
-    if (customer.averageIncome < parseInt(process.env.MIN_TO_CHECK_ACCOUNT)) {
-      throw this.appErrorService.createError(ErrorMessage.INSUFFICIENT_FUNDS, this.errorContext);
+    if (customer.averageCapital < parseInt(process.env.MIN_TO_CHECK_ACCOUNT)) {
+      throw this.iAppErrorService.createError(ErrorMessage.INSUFFICIENT_FUNDS, this.errorContext);
     }
   }
 
