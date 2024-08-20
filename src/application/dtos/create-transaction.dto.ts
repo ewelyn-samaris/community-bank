@@ -1,10 +1,10 @@
-import { ErrorMessage } from 'src/domain/enums/error-message.enum';
+import { ErrorMessage } from '../../domain/enums/error-message.enum';
 import { TransactionType } from '../../domain/enums/transaction-type.enum';
 import { IsEnum, IsNotEmpty, IsNumber, IsPositive, IsString, IsUUID, ValidateIf } from 'class-validator';
 
 export class CreateTransactionDTO {
   @IsNotEmpty({ message: `${ErrorMessage.DATA_MUST_BE_PROVIDED}: type` })
-  @IsEnum(TransactionType, { message: `${ErrorMessage.INVALID_DATA_TYPE}: type` })
+  @IsEnum(TransactionType, { message: `${ErrorMessage.INVALID_DATA_TYPE}: type: DEPOSIT | WITHDRAW | TRANSFER` })
   type: TransactionType;
 
   @IsNotEmpty({ message: `${ErrorMessage.DATA_MUST_BE_PROVIDED}: amount` })
