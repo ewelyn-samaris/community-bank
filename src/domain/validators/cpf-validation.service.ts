@@ -1,47 +1,41 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ErrorContext } from '../enums/error-context.enum';
 import { ErrorMessage } from '../enums/error-message.enum';
-import { IAppErrorService } from '../interfaces/apperror-service.interface';
 
 @Injectable()
 export class CpfValidationService {
-  private DEFAULT_CPF_LENGTH: number = 11;
-  private ALL_NUMBERS_IDENTICALS: RegExp = /^(\d)\1{10}$/;
-  private CPF_BASE_START_INDEX: number = 0;
-  private CPF_BASE_END_INDEX: number = 9;
-
-  constructor(@Inject('IAppErrorService') private readonly iAppErrorService: IAppErrorService) {}
-
-  private isInvalidCPFWithEqualDigits(cpf: string, validationContext: ErrorContext): void {
-    if (this.ALL_NUMBERS_IDENTICALS.test(cpf))
-      throw this.iAppErrorService.createError(ErrorMessage.INVALID_CPF, validationContext);
+  static isInvalidCPFWithEqualDigits(cpf: string, validationContext: ErrorContext): void {
+    const ALL_NUMBERS_IDENTICALS: RegExp = /^(\d)\1{10}$/;
+    if (ALL_NUMBERS_IDENTICALS.test(cpf)) throw new Error(`${validationContext} - ${ErrorMessage.INVALID_CPF}`);
   }
 
-  private calculateCheckDigit(base: string): number {
+  private static calculateCheckDigit(base: string): number {
+    const DEFAULT_CPF_LENGTH: number = 11;
     let sum: number = 0;
 
     base.split('').forEach((charNumber, index) => {
       sum += parseInt(charNumber) * (base.length + 1 - index);
     });
 
-    let remainder = sum % this.DEFAULT_CPF_LENGTH;
+    let remainder = sum % DEFAULT_CPF_LENGTH;
     const maxValueToZeroCheckDigit = 2;
-    return remainder < maxValueToZeroCheckDigit ? 0 : this.DEFAULT_CPF_LENGTH - remainder;
+    return remainder < maxValueToZeroCheckDigit ? 0 : DEFAULT_CPF_LENGTH - remainder;
   }
 
-  private verifyCheckDigits(cpf: string, validationContext: ErrorContext): void {
-    const firstCheckDigit = this.calculateCheckDigit(cpf.substring(this.CPF_BASE_START_INDEX, this.CPF_BASE_END_INDEX));
-    const secondCheckDigit = this.calculateCheckDigit(
-      cpf.substring(this.CPF_BASE_START_INDEX, this.CPF_BASE_END_INDEX + 1),
-    );
+  static verifyCheckDigits(cpf: string): boolean {
+    const CPF_BASE_START_INDEX: number = 0;
+    const CPF_BASE_END_INDEX: number = 9;
 
-    if (!cpf.endsWith(`${firstCheckDigit}${secondCheckDigit}`)) {
-      throw this.iAppErrorService.createError(ErrorMessage.INVALID_CPF, validationContext);
-    }
+    const firstCheckDigit = this.calculateCheckDigit(cpf.substring(CPF_BASE_START_INDEX, CPF_BASE_END_INDEX));
+    const secondCheckDigit = this.calculateCheckDigit(cpf.substring(CPF_BASE_START_INDEX, CPF_BASE_END_INDEX + 1));
+
+    return cpf.endsWith(`${firstCheckDigit}${secondCheckDigit}`);
   }
 
-  validate(cpf: string, validationContext: ErrorContext): void {
+  static validate(cpf: string, validationContext: ErrorContext): void {
     this.isInvalidCPFWithEqualDigits(cpf, validationContext);
-    this.verifyCheckDigits(cpf, validationContext);
+    if (!this.verifyCheckDigits(cpf)) {
+      throw new Error(`${validationContext} - ${ErrorMessage.INVALID_CPF}`);
+    }
   }
 }

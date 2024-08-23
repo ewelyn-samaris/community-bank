@@ -12,7 +12,6 @@ import { CpfValidationService } from './validators/cpf-validation.service';
 import { FunctionaryService } from './services/functionaries/functionary.service';
 import { CreateFunctionaryValidationService } from './validators/create-functionary-validation.service';
 import { AdministratorService } from './services/functionaries/administrator.service';
-import { AppErrorService } from './services/app-error.service';
 import { CreateCustomerValidationService } from './validators/create-customer-validation.service';
 import { CreateTransactionValidationService } from './validators/create-transaction-validation.service';
 import { TransactionService } from './services/transactions/transaction.service';
@@ -39,7 +38,6 @@ import { CreatePaymentValidationService } from './validators/create-payment-vali
     'IWithdrawService',
     'IDepositService',
     'ITransferService',
-    'IAppErrorService',
     'IAccountManagerService',
     'IAdministratorService',
     'ICustomerCreationRequestService',
@@ -102,10 +100,6 @@ import { CreatePaymentValidationService } from './validators/create-payment-vali
     {
       provide: 'ITransactionService',
       useClass: TransactionService,
-    },
-    {
-      provide: 'IAppErrorService',
-      useClass: AppErrorService,
     },
     {
       provide: 'IAccountManagerService',

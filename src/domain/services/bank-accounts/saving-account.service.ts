@@ -8,9 +8,7 @@ import { IEventManager } from '../../interfaces/event-manager.interface';
 
 @Injectable()
 export class SavingAccountService implements IObserver {
-  constructor(
-    @Inject('IEventManager') private readonly iEventManager: IEventManager
-  ) {}
+  constructor(@Inject('IEventManager') private readonly iEventManager: IEventManager) {}
   getAll(): SavingAccount[] {
     return SavingAccount.savings;
   }

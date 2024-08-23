@@ -1,5 +1,4 @@
 import { HttpStatus } from '@nestjs/common';
-import { AppError } from '../entities/app-error.entity';
 import { BankAccount } from '../entities/bank-account/bank-account.entity';
 import { Transaction } from '../entities/transaction/transaction.entity';
 import { CustomerCreationRequest } from '../entities/customer-creation-request.entity';
@@ -23,6 +22,5 @@ export class AppResponse {
     | Transaction
     | Transaction[]
     | Payment
-    | Payment[]
-    | AppError[];
+    | Payment[];
 }

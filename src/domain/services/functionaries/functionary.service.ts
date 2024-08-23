@@ -24,8 +24,7 @@ export class FunctionaryService implements IFunctionaryService {
   getFunctionaryByCpf(cpf: string): Functionary {
     const functionaries = this.getFunctionaries();
     if (functionaries.length) {
-      const x = functionaries.find((functionary) => functionary.cpf === cpf);
-      return x;
+      return functionaries.find((functionary) => functionary.cpf === cpf);
     }
   }
 

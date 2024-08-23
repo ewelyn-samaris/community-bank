@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AppErrorController } from './controllers/app-error.controller';
 import { BankAccountController } from './controllers/bank-account.controller';
 import { CustomerCreationRequestController } from './controllers/customer-creation-request.controller';
 import { CustomerController } from './controllers/customer.controller';
@@ -33,7 +32,6 @@ import { FunctionaryController } from './controllers/functionary.controller';
     BankAccountController,
     CustomerController,
     TransactionController,
-    AppErrorController,
     CustomerCreationRequestController,
     FunctionaryController,
     PaymentController,

@@ -10,18 +10,14 @@ import { DataFormatterAdapter } from '../../infrastructure/adapters/formatDateTi
 
 @Injectable()
 export class CreateCustomerValidationPipe implements PipeTransform {
-  constructor(
-    private readonly createCustomerValidationService: CreateCustomerValidationService,
-    private readonly cpfValidationService: CpfValidationService,
-    private readonly cnpjValidationService: CnpjValidationService,
-  ) {}
+  constructor(private readonly createCustomerValidationService: CreateCustomerValidationService) {}
 
   transform(value: CreateCustomerDTO, metadata: ArgumentMetadata) {
     try {
       if (value.nationalIdentifier.length === NationalIdentifierLengths.CNPJ) {
-        this.cnpjValidationService.validate(value.nationalIdentifier, ErrorContext.CREATE_CUSTOMER);
+        CnpjValidationService.validate(value.nationalIdentifier, ErrorContext.CREATE_CUSTOMER);
       } else {
-        this.cpfValidationService.validate(value.nationalIdentifier, ErrorContext.CREATE_CUSTOMER);
+        CpfValidationService.validate(value.nationalIdentifier, ErrorContext.CREATE_CUSTOMER);
       }
 
       this.createCustomerValidationService.validate(value.nationalIdentifier);
