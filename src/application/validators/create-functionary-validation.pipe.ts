@@ -8,14 +8,11 @@ import { DataFormatterAdapter } from '../../infrastructure/adapters/formatDateTi
 
 @Injectable()
 export class CreateFunctionaryValidationPipe implements PipeTransform {
-  constructor(
-    private readonly cpfValidationService: CpfValidationService,
-    private readonly createFunctionaryValidationService: CreateFunctionaryValidationService,
-  ) {}
+  constructor(private readonly createFunctionaryValidationService: CreateFunctionaryValidationService) {}
 
   transform(value: CreateFunctionaryDTO, metadata: ArgumentMetadata) {
     try {
-      this.cpfValidationService.validate(value.cpf, ErrorContext.CREATE_FUNCTIONARY);
+      CpfValidationService.validate(value.cpf, ErrorContext.CREATE_FUNCTIONARY);
       this.createFunctionaryValidationService.validate(value);
       return value;
     } catch (error) {

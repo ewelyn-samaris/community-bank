@@ -6,7 +6,6 @@ import { UpdateBankAccountTypeDTO } from '../../application/dtos/update-bank-acc
 import { BankAccount } from '../entities/bank-account/bank-account.entity';
 import { IBankAccountService } from '../interfaces/bank-account-service.interface';
 import { ICustomerService } from '../interfaces/customer-service.interface';
-import { IAppErrorService } from '../interfaces/apperror-service.interface';
 
 @Injectable()
 export class UpdateBankAccountTypeValidationService {
@@ -15,15 +14,14 @@ export class UpdateBankAccountTypeValidationService {
   constructor(
     @Inject('IBankAccountService') private readonly iBankAccountService: IBankAccountService,
     @Inject('ICustomerService') private readonly iCustomerService: ICustomerService,
-    @Inject('IAppErrorService') private readonly iAppErrorService: IAppErrorService,
   ) {}
 
   private throwError(errorMessage: string): void {
-    throw this.iAppErrorService.createError(errorMessage, this.errorContext);
+    throw new Error(`${this.errorContext} - ${errorMessage}`);
   }
 
   private throwNotFountError(errorMessage: string): void {
-    throw new NotFoundException(this.iAppErrorService.createError(errorMessage, this.errorContext));
+    throw new NotFoundException(`${this.errorContext} -${errorMessage}`);
   }
 
   private doesAccountExists(accountID: string): BankAccount {

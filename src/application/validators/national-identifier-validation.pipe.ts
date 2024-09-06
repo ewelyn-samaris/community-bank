@@ -8,17 +8,12 @@ import { DataFormatterAdapter } from '../../infrastructure/adapters/formatDateTi
 
 @Injectable()
 export class NationalIdentifierValidationPipe implements PipeTransform {
-  constructor(
-    private readonly cpfValidationService: CpfValidationService,
-    private readonly cnpjValidationService: CnpjValidationService,
-  ) {}
-
   transform(value: string, metadata: ArgumentMetadata) {
     try {
       if (value.length === NationalIdentifierLengths.CNPJ) {
-        this.cnpjValidationService.validate(value, ErrorContext.GET_DATA_BY_NATIONAL_IDENTIFIER);
+        CnpjValidationService.validate(value, ErrorContext.GET_DATA_BY_NATIONAL_IDENTIFIER);
       } else {
-        this.cpfValidationService.validate(value, ErrorContext.GET_DATA_BY_NATIONAL_IDENTIFIER);
+        CpfValidationService.validate(value, ErrorContext.GET_DATA_BY_NATIONAL_IDENTIFIER);
       }
       return value;
     } catch (error) {
