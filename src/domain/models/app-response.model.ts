@@ -1,10 +1,11 @@
 import { HttpStatus } from '@nestjs/common';
-import { Functionary } from '../entities/functionary.entity';
-import { Customer } from '../entities/customer.entity';
 import { AppError } from '../entities/app-error.entity';
-import { BankAccount } from '../entities/bank-account.entity';
-import { Transaction } from '../entities/transaction.entity';
+import { BankAccount } from '../entities/bank-account/bank-account.entity';
+import { Transaction } from '../entities/transaction/transaction.entity';
 import { CustomerCreationRequest } from '../entities/customer-creation-request.entity';
+import { Payment } from '../entities/payment/payment.entity';
+import { Customer } from '../entities/customer/customer.entity';
+import { Functionary } from '../entities/functionary/functionary.entity';
 
 export class AppResponse {
   statusCode: HttpStatus;
@@ -21,5 +22,7 @@ export class AppResponse {
     | CustomerCreationRequest[]
     | Transaction
     | Transaction[]
+    | Payment
+    | Payment[]
     | AppError[];
 }

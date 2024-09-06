@@ -1,28 +1,26 @@
-import { Controller, UsePipes, HttpStatus } from '@nestjs/common';
+import { Controller, UsePipes, HttpStatus, Inject } from '@nestjs/common';
 import { Param, Body } from '@nestjs/common';
-import { InternalServerErrorException } from '@nestjs/common';
-import { NotFoundException } from '@nestjs/common';
 import { Get, Post, Put, Delete } from '@nestjs/common';
 import { AppResponse } from '../../domain/models/app-response.model';
 import { CreateBankAccountDTO } from '../dtos/create-bank-account.dto';
-import { BankAccountService } from '../../domain/services/bank-account.service';
 import { DataFormatterAdapter } from '../../infrastructure/adapters/formatDateTime.adapter';
 import { CreateBankAccountValidationPipe } from '../validators/create-bank-account-validation.pipe';
 import { UpdateBankAccountTypeDTO } from '../dtos/update-bank-account.dto';
 import { UpdateBankAccountTypeValidationService } from '../../domain/validators/update-bank-account-type-validation.service';
-import { BankAccount } from '../../domain/entities/bank-account.entity';
+import { BankAccount } from '../../domain/entities/bank-account/bank-account.entity';
+import { IBankAccountService } from '../../domain/interfaces/bank-account-service.interface';
 
 @Controller('v1/bank-accounts')
 export class BankAccountController {
   constructor(
-    private readonly bankAccountService: BankAccountService,
+    @Inject('IBankAccountService') private readonly iBankAccountService: IBankAccountService,
     private readonly updateBankAccountTypeValidationService: UpdateBankAccountTypeValidationService,
   ) {}
 
   @Get()
   getAllAccounts(): AppResponse {
     try {
-      const accounts: BankAccount[] = this.bankAccountService.getAllBankAccounts();
+      const accounts: BankAccount[] = this.iBankAccountService.getAll();
       return {
         statusCode: HttpStatus.OK,
         message: 'Bank accounts retrieved successfully',
@@ -30,14 +28,18 @@ export class BankAccountController {
         data: accounts,
       };
     } catch (error) {
-      throw new InternalServerErrorException("Can't retrieve bank accounts. Internal server error");
+      return {
+        statusCode: HttpStatus.NOT_FOUND,
+        message: `No bank accounts found`,
+        date: DataFormatterAdapter.formatDateTimeString(),
+      };
     }
   }
 
   @Get(':id')
   getAccountByID(@Param('id') id: string): AppResponse {
     try {
-      const account: BankAccount = this.bankAccountService.getAccountById(id);
+      const account: BankAccount = this.iBankAccountService.getAccountById(id);
       return {
         statusCode: HttpStatus.OK,
         message: 'Bank account retrieved successfully',
@@ -45,14 +47,18 @@ export class BankAccountController {
         data: account,
       };
     } catch (error) {
-      throw new NotFoundException(`Not found bank account with the given accountID #${id}`);
+      return {
+        statusCode: HttpStatus.NOT_FOUND,
+        message: `No bank account found with the given id #${id}`,
+        date: DataFormatterAdapter.formatDateTimeString(),
+      };
     }
   }
 
   @Get('customer/:id')
   getAccountByCustomerID(@Param('id') customerID: string): AppResponse {
     try {
-      const accounts: BankAccount[] = this.bankAccountService.getAccountsByCustomerID(customerID);
+      const accounts: BankAccount[] = this.iBankAccountService.getAccountsByCustomerID(customerID);
       return {
         statusCode: HttpStatus.OK,
         message: 'Bank account retrieved successfully',
@@ -60,7 +66,11 @@ export class BankAccountController {
         data: accounts,
       };
     } catch (error) {
-      throw new NotFoundException(`Not found bank account with the given accountID #${customerID}`);
+      return {
+        statusCode: error.getStatus(),
+        message: error.message,
+        date: DataFormatterAdapter.formatDateTimeString(),
+      };
     }
   }
 
@@ -68,8 +78,7 @@ export class BankAccountController {
   @UsePipes(CreateBankAccountValidationPipe)
   create(@Body() createBankAccountDTO: CreateBankAccountDTO): AppResponse {
     try {
-      console.log(`createBankAccountDTO no controller: ${JSON.stringify(createBankAccountDTO)}`);
-      const account = this.bankAccountService.createBankAccount(createBankAccountDTO);
+      const account = this.iBankAccountService.createBankAccount(createBankAccountDTO);
       return {
         statusCode: HttpStatus.CREATED,
         message: 'Bank account created successfully',
@@ -77,21 +86,29 @@ export class BankAccountController {
         data: account,
       };
     } catch (error) {
-      throw new InternalServerErrorException("Can't create bank account. Internal server error");
+      return {
+        statusCode: error.getStatus(),
+        message: error.message,
+        date: DataFormatterAdapter.formatDateTimeString(),
+      };
     }
   }
 
   @Delete(':id')
   delete(@Param('id') id: string): AppResponse {
     try {
-      this.bankAccountService.softDeleteAccount(id);
+      this.iBankAccountService.softDeleteAccount(id);
       return {
         statusCode: HttpStatus.NO_CONTENT,
         message: 'Bank account deleted successfully',
         date: DataFormatterAdapter.formatDateTimeString(),
       };
     } catch (error) {
-      throw new InternalServerErrorException("Can't delete bank account. Internal server error");
+      return {
+        statusCode: error.getStatus(),
+        message: error.message,
+        date: DataFormatterAdapter.formatDateTimeString(),
+      };
     }
   }
 
@@ -102,7 +119,7 @@ export class BankAccountController {
   ): AppResponse {
     try {
       this.updateBankAccountTypeValidationService.validate(updateBankAccountTypeDTO, accountId);
-      const account: BankAccount = this.bankAccountService.modifyAccountType(updateBankAccountTypeDTO, accountId);
+      const account: BankAccount = this.iBankAccountService.modifyAccountType(updateBankAccountTypeDTO, accountId);
       return {
         statusCode: HttpStatus.OK,
         message: 'Account type updated successfully',
@@ -110,7 +127,11 @@ export class BankAccountController {
         data: account,
       };
     } catch (error) {
-      throw new InternalServerErrorException("Can't update account type. Internal server error");
+      return {
+        statusCode: error.getStatus(),
+        message: error.message,
+        date: DataFormatterAdapter.formatDateTimeString(),
+      };
     }
   }
 }

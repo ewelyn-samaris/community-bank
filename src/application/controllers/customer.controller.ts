@@ -1,25 +1,31 @@
-import { Body, Controller, UsePipes } from '@nestjs/common';
-import { Param, Post, Query } from '@nestjs/common';
-import { InternalServerErrorException } from '@nestjs/common';
-import { NotFoundException } from '@nestjs/common';
+import { Body, Controller, Inject, UsePipes } from '@nestjs/common';
+import { Param, Post } from '@nestjs/common';
 import { Get, HttpStatus } from '@nestjs/common';
 import { DataFormatterAdapter } from '../../infrastructure/adapters/formatDateTime.adapter';
 import { AppResponse } from '../../domain/models/app-response.model';
-import { CustomerService } from '../../domain/services/customer.service';
-import { Customer } from '../../domain/entities/customer.entity';
-import { CpfValidationPipe } from '../validators/cpf-validation.pipe';
+import { NationalIdentifierValidationPipe } from '../validators/national-identifier-validation.pipe';
 import { CreateCustomerDTO } from '../dtos/create-customer.dto';
 import { CreateCustomerValidationPipe } from '../validators/create-customer-validation.pipe';
+import { ICustomerService } from '../../domain/interfaces/customer-service.interface';
+import { Customer } from '../../domain/entities/customer/customer.entity';
+import { IEventManager } from '../../domain/interfaces/event-manager.interface';
+import { IObserver } from '../../domain/interfaces/observer.interface';
 
 @Controller('v1/customers')
 export class CustomerController {
-  constructor(private readonly customerService: CustomerService) {}
+  constructor(
+    @Inject('ICustomerService') private readonly iCustomerService: ICustomerService,
+    @Inject('IObserver') private readonly iSavingAccountService: IObserver,
+    @Inject('IEventManager') private readonly iEventManager: IEventManager,
+  ) {
+    this.iEventManager.subscribe(this.iSavingAccountService);
+  }
 
   @Post()
   @UsePipes(CreateCustomerValidationPipe)
   createCustomer(@Body() CreateCustomerDTO: CreateCustomerDTO): AppResponse {
     try {
-      const customer: Customer = this.customerService.createCustomer(CreateCustomerDTO);
+      const customer: Customer = this.iCustomerService.createCustomer(CreateCustomerDTO);
       return {
         statusCode: HttpStatus.CREATED,
         message: 'Customer created successfully',
@@ -27,14 +33,18 @@ export class CustomerController {
         data: customer,
       };
     } catch (error) {
-      throw new InternalServerErrorException(`Can't create customer. Internal server error`);
+      return {
+        statusCode: error.getStatus(),
+        message: error.message,
+        date: DataFormatterAdapter.formatDateTimeString(),
+      };
     }
   }
 
   @Get()
   getAllCustomers(): AppResponse {
     try {
-      const customers: Customer[] = this.customerService.getCustomers();
+      const customers: Customer[] = this.iCustomerService.getCustomers();
       return {
         statusCode: HttpStatus.OK,
         message: 'Customers retrieved successfully',
@@ -42,16 +52,19 @@ export class CustomerController {
         data: customers,
       };
     } catch (error) {
-      throw new InternalServerErrorException("Can't retrieve customers. Internal server error");
+      return {
+        statusCode: HttpStatus.NOT_FOUND,
+        message: `No customers found`,
+        date: DataFormatterAdapter.formatDateTimeString(),
+      };
     }
   }
 
-  @Get(':cpf')
-  @UsePipes(CpfValidationPipe)
-  getCustomerByCpf(@Param('cpf') customerCpf: string): AppResponse {
+  @Get(':nationalIdentifier')
+  @UsePipes(NationalIdentifierValidationPipe)
+  getCustomerByCpf(@Param('nationalIdentifier') nationalIdentifier: string): AppResponse {
     try {
-      const customer: Customer = this.customerService.getCustomerByCpf(customerCpf);
-      // console.log(`Customer: ${customer}`);
+      const customer: Customer = this.iCustomerService.getCustomerByNationalIdentifier(nationalIdentifier);
       return {
         statusCode: HttpStatus.OK,
         message: 'Customer retrieved successfully',
@@ -59,7 +72,11 @@ export class CustomerController {
         data: customer,
       };
     } catch (error) {
-      throw new NotFoundException('Customer not found');
+      return {
+        statusCode: HttpStatus.NOT_FOUND,
+        message: `No customer found with the given national-identifier #${nationalIdentifier}`,
+        date: DataFormatterAdapter.formatDateTimeString(),
+      };
     }
   }
 }

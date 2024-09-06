@@ -26,7 +26,7 @@ export class CreateFunctionaryDTO {
   salary: number;
 
   @IsNotEmpty({ message: `${ErrorMessage.DATA_MUST_BE_PROVIDED}: office` })
-  @IsEnum(OfficeTypes, { message: `${ErrorMessage.INVALID_DATA_TYPE}: office` })
+  @IsEnum(OfficeTypes, { message: `${ErrorMessage.INVALID_DATA_TYPE}: office: ADMINISTRATOR | ACCOUNT_MANAGER` })
   office: OfficeTypes;
 
   @ValidateIf((obj) => obj.office === OfficeTypes.ACCOUNT_MANAGER)

@@ -1,23 +1,21 @@
-import { Controller, HttpStatus, UsePipes } from '@nestjs/common';
-import { InternalServerErrorException } from '@nestjs/common';
-import { NotFoundException } from '@nestjs/common';
+import { Controller, HttpStatus, Inject, UsePipes } from '@nestjs/common';
 import { Body, Param, Get, Post } from '@nestjs/common';
 import { CreateTransactionValidationPipe } from '../validators/create-transaction-validation.pipe';
 import { CreateTransactionDTO } from '../dtos/create-transaction.dto';
 import { AppResponse } from '../../domain/models/app-response.model';
 import { DataFormatterAdapter } from '../../infrastructure/adapters/formatDateTime.adapter';
-import { TransactionService } from '../../domain/services/transaction.service';
-import { Transaction } from '../../domain/entities/transaction.entity';
+import { Transaction } from '../../domain/entities/transaction/transaction.entity';
+import { ITransactionService } from '../../domain/interfaces/transaction/transaction-service.interface';
 
 @Controller('v1/transactions')
 export class TransactionController {
-  constructor(private readonly transactionService: TransactionService) {}
+  constructor(@Inject('ITransactionService') private readonly iTransactionService: ITransactionService) {}
 
   @Post()
   @UsePipes(CreateTransactionValidationPipe)
   createTransaction(@Body() createTransactionDTO: CreateTransactionDTO): AppResponse {
     try {
-      const transaction = this.transactionService.execute(createTransactionDTO);
+      const transaction = this.iTransactionService.execute(createTransactionDTO);
       return {
         statusCode: HttpStatus.CREATED,
         message: 'Transaction created successfully',
@@ -25,14 +23,18 @@ export class TransactionController {
         data: transaction,
       };
     } catch (error) {
-      throw new InternalServerErrorException("Can't create transaction. Internal server error");
+      return {
+        statusCode: error.getStatus(),
+        message: error.message,
+        date: DataFormatterAdapter.formatDateTimeString(),
+      };
     }
   }
 
   @Get('bank-account/:id')
   getBankStatement(@Param('id') accountID: string): AppResponse {
     try {
-      const bankStatement: Transaction[] = this.transactionService.getLastTransactionsByAccountID(accountID);
+      const bankStatement: Transaction[] = this.iTransactionService.getLastTransactionsByAccountID(accountID);
       return {
         statusCode: HttpStatus.OK,
         message: 'Bank statement retrieved successfully',
@@ -40,7 +42,11 @@ export class TransactionController {
         data: bankStatement,
       };
     } catch (error) {
-      throw new NotFoundException('Bank statement not found');
+      return {
+        statusCode: error.getStatus(),
+        message: error.message,
+        date: DataFormatterAdapter.formatDateTimeString(),
+      };
     }
   }
 }

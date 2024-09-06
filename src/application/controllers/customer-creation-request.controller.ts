@@ -1,20 +1,22 @@
-import { Controller, UsePipes, HttpStatus } from '@nestjs/common';
-import { NotFoundException } from '@nestjs/common';
+import { Controller, UsePipes, HttpStatus, Inject } from '@nestjs/common';
 import { Get, Param } from '@nestjs/common';
-import { CpfValidationPipe } from '../validators/cpf-validation.pipe';
+import { NationalIdentifierValidationPipe } from '../validators/national-identifier-validation.pipe';
 import { AppResponse } from '../../domain/models/app-response.model';
 import { DataFormatterAdapter } from '../../infrastructure/adapters/formatDateTime.adapter';
 import { CustomerCreationRequest } from '../../domain/entities/customer-creation-request.entity';
-import { CustomerCreationRequestService } from '../../domain/services/customer-creation-request.service';
+import { ICustomerCreationRequestService } from '../../domain/interfaces/customer-creation-request-service.interface';
 
 @Controller('v1/customer-creation-requests')
 export class CustomerCreationRequestController {
-  constructor(private readonly customerCreationRequestService: CustomerCreationRequestService) {}
+  constructor(
+    @Inject('ICustomerCreationRequestService')
+    private readonly iCustomerCreationRequestService: ICustomerCreationRequestService,
+  ) {}
 
   @Get()
   getAllCustomerCreationRequests(): AppResponse {
     try {
-      const customerCreationRequests: CustomerCreationRequest[] = this.customerCreationRequestService.getAllRequests();
+      const customerCreationRequests: CustomerCreationRequest[] = this.iCustomerCreationRequestService.getAllRequests();
       return {
         statusCode: HttpStatus.OK,
         message: `Customer-creation-requests retrieved successfully`,
@@ -22,23 +24,32 @@ export class CustomerCreationRequestController {
         data: customerCreationRequests,
       };
     } catch (error) {
-      throw new NotFoundException(`No customer-creation-request found`);
+      return {
+        statusCode: error.getStatus(),
+        message: error.message,
+        date: DataFormatterAdapter.formatDateTimeString(),
+      };
     }
   }
 
-  @Get(':cpf')
-  @UsePipes(CpfValidationPipe)
-  getAllCreationCustomerRequests(@Param('cpf') cpf: string): AppResponse {
+  @Get(':nationalIdentifier')
+  @UsePipes(NationalIdentifierValidationPipe)
+  getAllCreationCustomerRequests(@Param('nationalIdentifier') nationalIdentifier: string): AppResponse {
     try {
-      const customerCreationRequest: CustomerCreationRequest = this.customerCreationRequestService.getRequestByCpf(cpf);
+      const customerCreationRequest: CustomerCreationRequest =
+        this.iCustomerCreationRequestService.getLastRequestByNationalIdentifier(nationalIdentifier);
       return {
         statusCode: HttpStatus.OK,
-        message: `Creation-customer-request retrieved successfully for the cpf: ${cpf}`,
+        message: `Creation-customer-request retrieved successfully for the identifier: ${nationalIdentifier}`,
         date: DataFormatterAdapter.formatDateTimeString(),
         data: customerCreationRequest,
       };
     } catch (error) {
-      throw new NotFoundException(`No customer-creation-request found for cpf: ${cpf}`);
+      return {
+        statusCode: error.getStatus(),
+        message: error.message,
+        date: DataFormatterAdapter.formatDateTimeString(),
+      };
     }
   }
 }

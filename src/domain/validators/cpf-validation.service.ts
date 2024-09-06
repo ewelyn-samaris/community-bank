@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
-import { AppErrorService } from '../services/app-error.service';
+import { Inject, Injectable } from '@nestjs/common';
 import { ErrorContext } from '../enums/error-context.enum';
 import { ErrorMessage } from '../enums/error-message.enum';
+import { IAppErrorService } from '../interfaces/apperror-service.interface';
 
 @Injectable()
 export class CpfValidationService {
@@ -10,11 +10,11 @@ export class CpfValidationService {
   private CPF_BASE_START_INDEX: number = 0;
   private CPF_BASE_END_INDEX: number = 9;
 
-  constructor(private readonly appErrorService: AppErrorService) {}
+  constructor(@Inject('IAppErrorService') private readonly iAppErrorService: IAppErrorService) {}
 
   private isInvalidCPFWithEqualDigits(cpf: string, validationContext: ErrorContext): void {
     if (this.ALL_NUMBERS_IDENTICALS.test(cpf))
-      throw this.appErrorService.createError(ErrorMessage.INVALID_CPF, validationContext);
+      throw this.iAppErrorService.createError(ErrorMessage.INVALID_CPF, validationContext);
   }
 
   private calculateCheckDigit(base: string): number {
@@ -25,7 +25,8 @@ export class CpfValidationService {
     });
 
     let remainder = sum % this.DEFAULT_CPF_LENGTH;
-    return remainder < 2 ? 0 : this.DEFAULT_CPF_LENGTH - remainder;
+    const maxValueToZeroCheckDigit = 2;
+    return remainder < maxValueToZeroCheckDigit ? 0 : this.DEFAULT_CPF_LENGTH - remainder;
   }
 
   private verifyCheckDigits(cpf: string, validationContext: ErrorContext): void {
@@ -35,7 +36,7 @@ export class CpfValidationService {
     );
 
     if (!cpf.endsWith(`${firstCheckDigit}${secondCheckDigit}`)) {
-      throw this.appErrorService.createError(ErrorMessage.INVALID_CPF, validationContext);
+      throw this.iAppErrorService.createError(ErrorMessage.INVALID_CPF, validationContext);
     }
   }
 
