@@ -1,36 +1,30 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ErrorContext } from '../enums/error-context.enum';
 import { ErrorMessage } from '../enums/error-message.enum';
 import { CreateFunctionaryDTO } from '../../application/dtos/create-functionary.dto';
-import { AppErrorService } from '../services/app-error.service';
-import { FunctionaryService } from '../services/functionary.service';
+import { IFunctionaryService } from '../interfaces/functionary/functionary-service.interface';
 
 @Injectable()
 export class CreateFunctionaryValidationService {
   private errorContext: ErrorContext = ErrorContext.CREATE_FUNCTIONARY;
 
-  constructor(
-    private readonly functionaryService: FunctionaryService,
-    private readonly appErrorService: AppErrorService,
-  ) {}
+  constructor(@Inject('IFunctionaryService') private readonly iFunctionaryService: IFunctionaryService) {}
 
   private isValidAddimissionDate(dateStringAttribute: string, dateStringValue: string): void {
     const date: Date = new Date(dateStringValue);
     if (!(date instanceof Date) || isNaN(date.getTime())) {
-      if (!(date instanceof Date))
-        throw this.appErrorService.createError(
-          `${ErrorMessage.INVALID_DATA_TYPE}: ${dateStringAttribute}`,
-          this.errorContext,
-        );
+      throw new Error(`${this.errorContext} - ${ErrorMessage.INVALID_DATA_TYPE}: ${dateStringAttribute}`);
     }
-    if (date > new Date())
-      throw this.appErrorService.createError(ErrorMessage.DATE_CANNOT_BE_FUTURE, this.errorContext);
+    if (date > new Date()) {
+      throw new Error(`${this.errorContext} - ${ErrorMessage.DATE_CANNOT_BE_FUTURE}`);
+    }
   }
 
   private doesFunctionaryAlreadyExist(cpf: string): void {
-    const existfunctionary = this.functionaryService.getFunctionaryByCpf(cpf);
-    if (existfunctionary)
-      throw this.appErrorService.createError(ErrorMessage.FUNCTIONARY_ALREADY_EXISTS, this.errorContext);
+    const existfunctionary = this.iFunctionaryService.getFunctionaryByCpf(cpf);
+    if (existfunctionary) {
+      throw new Error(`${this.errorContext} - ${ErrorMessage.FUNCTIONARY_ALREADY_EXISTS}`);
+    }
   }
 
   validate(createFunctionaryDTO: CreateFunctionaryDTO): void {
