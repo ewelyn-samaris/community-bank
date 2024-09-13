@@ -1,7 +1,6 @@
 import { ErrorMessage } from '../../domain/enums/error-message.enum';
 import { ManagedRegion } from '../../domain/enums/managed-regions.enum';
 import { IsEnum, IsNumber, IsPositive, IsString, Matches, IsNotEmpty } from 'class-validator';
-import 'dotenv/config';
 
 export class CreateCustomerDTO {
   @IsNotEmpty({ message: `${ErrorMessage.DATA_MUST_BE_PROVIDED}: name` })

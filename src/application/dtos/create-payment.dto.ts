@@ -1,4 +1,4 @@
-import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, IsUUID, ValidateIf } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, IsUUID } from 'class-validator';
 import { ErrorMessage } from '../../domain/enums/error-message.enum';
 import { PaymentStrategy } from '../../domain/enums/payment-strategy.enum';
 
@@ -31,13 +31,7 @@ export class CreatePaymentDto {
   @IsEnum(PaymentStrategy, { message: `${ErrorMessage.INVALID_DATA_TYPE}: paymentStrategy: PIX | BILL` })
   paymentStrategy: PaymentStrategy;
 
-  @ValidateIf((obj) => obj.paymentStrategy === PaymentStrategy.BILL)
-  @IsNotEmpty({ message: `${ErrorMessage.DATA_MUST_BE_PROVIDED}: billCode` })
-  @IsString({ message: `${ErrorMessage.INVALID_DATA_TYPE}: billCode` })
-  billCode?: string;
-
-  @ValidateIf((obj) => obj.paymentStrategy === PaymentStrategy.PIX)
-  @IsNotEmpty({ message: `${ErrorMessage.DATA_MUST_BE_PROVIDED}: pixCode` })
-  @IsString({ message: `${ErrorMessage.INVALID_DATA_TYPE}: pixCode` })
-  pixCode?: string;
+  @IsNotEmpty({ message: `${ErrorMessage.DATA_MUST_BE_PROVIDED}: code` })
+  @IsString({ message: `${ErrorMessage.INVALID_DATA_TYPE}: code` })
+  code: string;
 }

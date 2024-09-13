@@ -1,7 +1,6 @@
-import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, IsUUID } from 'class-validator';
 import { AccountType } from '../../domain/enums/account-type.enum';
 import { ErrorMessage } from '../../domain/enums/error-message.enum';
-import 'dotenv/config';
 
 export class CreateBankAccountDTO {
   @IsNotEmpty({ message: `${ErrorMessage.DATA_MUST_BE_PROVIDED}: customerId` })
@@ -15,6 +14,6 @@ export class CreateBankAccountDTO {
 
   @IsOptional()
   @IsNumber({}, { message: `${ErrorMessage.INVALID_DATA_TYPE}: initialBalance` })
-  @Min(0, { message: ErrorMessage.INVALID_AMOUNT })
+  @IsPositive({ message: ErrorMessage.INVALID_AMOUNT })
   initialBalance?: number;
 }
