@@ -13,9 +13,9 @@ export class TransactionController {
 
   @Post()
   @UsePipes(CreateTransactionValidationPipe)
-  createTransaction(@Body() createTransactionDTO: CreateTransactionDTO): AppResponse {
+  async createTransaction(@Body() createTransactionDTO: CreateTransactionDTO): Promise<AppResponse<Transaction>> {
     try {
-      const transaction = this.iTransactionService.execute(createTransactionDTO);
+      const transaction = await this.iTransactionService.execute(createTransactionDTO);
       return {
         statusCode: HttpStatus.CREATED,
         message: 'Transaction created successfully',
@@ -32,9 +32,9 @@ export class TransactionController {
   }
 
   @Get('bank-account/:id')
-  getBankStatement(@Param('id') accountID: string): AppResponse {
+  async getBankStatement(@Param('id') accountID: string): Promise<AppResponse<Transaction>> {
     try {
-      const bankStatement: Transaction[] = this.iTransactionService.getLastTransactionsByAccountID(accountID);
+      const bankStatement: Transaction[] = await this.iTransactionService.getLastTransactionsByAccountId(accountID);
       return {
         statusCode: HttpStatus.OK,
         message: 'Bank statement retrieved successfully',

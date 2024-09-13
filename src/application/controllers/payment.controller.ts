@@ -5,6 +5,7 @@ import { CreatePaymentDto } from '../dtos/create-payment.dto';
 import { IPaymentService } from '../../domain/interfaces/payment/payment-service.interface';
 import { DataFormatterAdapter } from '../../infrastructure/adapters/formatDateTime.adapter';
 import { CreatePaymentValidationService } from '../../domain/validators/create-payment-validation.service';
+import { Payment } from '../../domain/entities/payment/payment.entity';
 
 @Controller('v1/payments')
 export class PaymentController {
@@ -12,9 +13,9 @@ export class PaymentController {
 
   @Post()
   @UsePipes(CreatePaymentValidationService)
-  createPayment(@Body() createPaymentDto: CreatePaymentDto): AppResponse {
+  async createPayment(@Body() createPaymentDto: CreatePaymentDto): Promise<AppResponse<Payment>> {
     try {
-      const payment = this.ipaymentService.execute(createPaymentDto);
+      const payment = await this.ipaymentService.execute(createPaymentDto);
       return {
         statusCode: HttpStatus.CREATED,
         message: 'Payment processed successfully',
@@ -31,9 +32,9 @@ export class PaymentController {
   }
 
   @Get(':accountId')
-  getPaymentsByAccountId(@Param('accountId') accountId: string): AppResponse {
+  async getPaymentsByAccountId(@Param('accountId') accountId: string): Promise<AppResponse<Payment>> {
     try {
-      const payments = this.ipaymentService.getPaymentsByAccountId(accountId);
+      const payments = await this.ipaymentService.getPaymentsByAccountId(accountId);
       return {
         statusCode: HttpStatus.OK,
         message: 'Payments retrieved successfully',

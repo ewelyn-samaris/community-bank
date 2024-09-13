@@ -14,9 +14,10 @@ export class CustomerCreationRequestController {
   ) {}
 
   @Get()
-  getAllCustomerCreationRequests(): AppResponse {
+  async getAllCustomerCreationRequests(): Promise<AppResponse<CustomerCreationRequest>> {
     try {
-      const customerCreationRequests: CustomerCreationRequest[] = this.iCustomerCreationRequestService.getAllRequests();
+      const customerCreationRequests: CustomerCreationRequest[] =
+        await this.iCustomerCreationRequestService.getAllRequests();
       return {
         statusCode: HttpStatus.OK,
         message: `Customer-creation-requests retrieved successfully`,
@@ -34,10 +35,12 @@ export class CustomerCreationRequestController {
 
   @Get(':nationalIdentifier')
   @UsePipes(NationalIdentifierValidationPipe)
-  getAllCreationCustomerRequests(@Param('nationalIdentifier') nationalIdentifier: string): AppResponse {
+  async getAllCreationCustomerRequests(
+    @Param('nationalIdentifier') nationalIdentifier: string,
+  ): Promise<AppResponse<CustomerCreationRequest>> {
     try {
       const customerCreationRequest: CustomerCreationRequest =
-        this.iCustomerCreationRequestService.getLastRequestByNationalIdentifier(nationalIdentifier);
+        await this.iCustomerCreationRequestService.getLastRequestByNationalIdentifier(nationalIdentifier);
       return {
         statusCode: HttpStatus.OK,
         message: `Creation-customer-request retrieved successfully for the identifier: ${nationalIdentifier}`,

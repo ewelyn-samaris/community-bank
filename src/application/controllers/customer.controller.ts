@@ -15,17 +15,17 @@ import { IObserver } from '../../domain/interfaces/observer.interface';
 export class CustomerController {
   constructor(
     @Inject('ICustomerService') private readonly iCustomerService: ICustomerService,
-    @Inject('IObserver') private readonly iSavingAccountService: IObserver,
+    @Inject('IObserver') private readonly iSavingAccountObserverService: IObserver,
     @Inject('IEventManager') private readonly iEventManager: IEventManager,
   ) {
-    this.iEventManager.subscribe(this.iSavingAccountService);
+    this.iEventManager.subscribe(this.iSavingAccountObserverService);
   }
 
   @Post()
   @UsePipes(CreateCustomerValidationPipe)
-  createCustomer(@Body() CreateCustomerDTO: CreateCustomerDTO): AppResponse {
+  async createCustomer(@Body() CreateCustomerDTO: CreateCustomerDTO): Promise<AppResponse<Customer>> {
     try {
-      const customer: Customer = this.iCustomerService.createCustomer(CreateCustomerDTO);
+      const customer: Customer = await this.iCustomerService.createCustomer(CreateCustomerDTO);
       return {
         statusCode: HttpStatus.CREATED,
         message: 'Customer created successfully',
@@ -42,9 +42,9 @@ export class CustomerController {
   }
 
   @Get()
-  getAllCustomers(): AppResponse {
+  async getAllCustomers(): Promise<AppResponse<Customer>> {
     try {
-      const customers: Customer[] = this.iCustomerService.getCustomers();
+      const customers: Customer[] = await this.iCustomerService.getCustomers();
       return {
         statusCode: HttpStatus.OK,
         message: 'Customers retrieved successfully',
@@ -62,9 +62,9 @@ export class CustomerController {
 
   @Get(':nationalIdentifier')
   @UsePipes(NationalIdentifierValidationPipe)
-  getCustomerByCpf(@Param('nationalIdentifier') nationalIdentifier: string): AppResponse {
+  async getCustomerByCpf(@Param('nationalIdentifier') nationalIdentifier: string): Promise<AppResponse<Customer>> {
     try {
-      const customer: Customer = this.iCustomerService.getCustomerByNationalIdentifier(nationalIdentifier);
+      const customer: Customer = await this.iCustomerService.getCustomerByNationalIdentifier(nationalIdentifier);
       return {
         statusCode: HttpStatus.OK,
         message: 'Customer retrieved successfully',
