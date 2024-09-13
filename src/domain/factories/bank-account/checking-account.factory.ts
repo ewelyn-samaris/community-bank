@@ -1,10 +1,11 @@
+import { Customer } from '../../entities/customer/customer.entity';
 import { CreateBankAccountDTO } from '../../../application/dtos/create-bank-account.dto';
 import { CheckingAccount } from '../../entities/bank-account/checking-account.entity';
 
 export class CheckingAccountFactory {
-  static create(createCheckingAccountDto: CreateBankAccountDTO, averageCapital: number): CheckingAccount {
-    const specialCheckLimit: number = this.getCheckLimitByAvarageIncome(averageCapital);
-    return new CheckingAccount(createCheckingAccountDto, specialCheckLimit);
+  static create(createCheckingAccountDto: CreateBankAccountDTO, customer: Customer): CheckingAccount {
+    const specialCheckLimit: number = this.getCheckLimitByAvarageIncome(customer.averageCapital);
+    return new CheckingAccount(createCheckingAccountDto, customer, specialCheckLimit);
   }
 
   private static getCheckLimitByAvarageIncome(customerAverageCapital: number): number {

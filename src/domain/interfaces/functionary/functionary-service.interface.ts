@@ -2,7 +2,7 @@ import { Functionary } from '../../entities/functionary/functionary.entity';
 import { CreateFunctionaryDTO } from '../../../application/dtos/create-functionary.dto';
 
 export interface IFunctionaryService {
-  getFunctionaries(): Functionary[];
-  getFunctionaryByCpf(cpf: string): Functionary;
-  createFunctionary(createFunctionaryDTO: CreateFunctionaryDTO): Functionary;
+  getFunctionaries(): Promise<Functionary[]>;
+  getFunctionaryByCpf(cpf: string): Promise<Functionary>;
+  createFunctionary(createFunctionaryDTO: CreateFunctionaryDTO): Promise<Functionary>;
 }

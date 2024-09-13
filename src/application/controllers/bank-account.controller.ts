@@ -18,9 +18,9 @@ export class BankAccountController {
   ) {}
 
   @Get()
-  getAllAccounts(): AppResponse {
+  async getAllAccounts(): Promise<AppResponse<BankAccount>> {
     try {
-      const accounts: BankAccount[] = this.iBankAccountService.getAll();
+      const accounts: BankAccount[] = await this.iBankAccountService.getAll();
       return {
         statusCode: HttpStatus.OK,
         message: 'Bank accounts retrieved successfully',
@@ -37,9 +37,9 @@ export class BankAccountController {
   }
 
   @Get(':id')
-  getAccountByID(@Param('id') id: string): AppResponse {
+  async getAccountByID(@Param('id') id: string): Promise<AppResponse<BankAccount>> {
     try {
-      const account: BankAccount = this.iBankAccountService.getAccountById(id);
+      const account: BankAccount = await this.iBankAccountService.getAccountById(id);
       return {
         statusCode: HttpStatus.OK,
         message: 'Bank account retrieved successfully',
@@ -56,9 +56,9 @@ export class BankAccountController {
   }
 
   @Get('customer/:id')
-  getAccountByCustomerID(@Param('id') customerID: string): AppResponse {
+  async getAccountByCustomerID(@Param('id') customerID: string): Promise<AppResponse<BankAccount>> {
     try {
-      const accounts: BankAccount[] = this.iBankAccountService.getAccountsByCustomerID(customerID);
+      const accounts: BankAccount[] = await this.iBankAccountService.getAccountsByCustomerId(customerID);
       return {
         statusCode: HttpStatus.OK,
         message: 'Bank account retrieved successfully',
@@ -76,9 +76,9 @@ export class BankAccountController {
 
   @Post()
   @UsePipes(CreateBankAccountValidationPipe)
-  create(@Body() createBankAccountDTO: CreateBankAccountDTO): AppResponse {
+  async create(@Body() createBankAccountDTO: CreateBankAccountDTO): Promise<AppResponse<BankAccount>> {
     try {
-      const account = this.iBankAccountService.createBankAccount(createBankAccountDTO);
+      const account = await this.iBankAccountService.createBankAccount(createBankAccountDTO);
       return {
         statusCode: HttpStatus.CREATED,
         message: 'Bank account created successfully',
@@ -95,9 +95,10 @@ export class BankAccountController {
   }
 
   @Delete(':id')
-  delete(@Param('id') id: string): AppResponse {
+  async delete(@Param('id') id: string): Promise<AppResponse<BankAccount>> {
     try {
-      this.iBankAccountService.softDeleteAccount(id);
+      const account = await this.iBankAccountService.getAccountById(id);
+      await this.iBankAccountService.softRemoveAccount(account);
       return {
         statusCode: HttpStatus.NO_CONTENT,
         message: 'Bank account deleted successfully',
@@ -113,13 +114,16 @@ export class BankAccountController {
   }
 
   @Put(':id')
-  modifyAccountType(
+  async modifyAccountType(
     @Param('id') accountId: string,
     @Body() updateBankAccountTypeDTO: UpdateBankAccountTypeDTO,
-  ): AppResponse {
+  ): Promise<AppResponse<BankAccount>> {
     try {
       this.updateBankAccountTypeValidationService.validate(updateBankAccountTypeDTO, accountId);
-      const account: BankAccount = this.iBankAccountService.modifyAccountType(updateBankAccountTypeDTO, accountId);
+      const account: BankAccount = await this.iBankAccountService.modifyAccountType(
+        updateBankAccountTypeDTO,
+        accountId,
+      );
       return {
         statusCode: HttpStatus.OK,
         message: 'Account type updated successfully',

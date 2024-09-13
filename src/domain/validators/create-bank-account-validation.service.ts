@@ -13,22 +13,22 @@ export class CreateBankAccountValidationService {
 
   constructor(@Inject('ICustomerService') private readonly iCustomerService: ICustomerService) {}
 
-  private doesCustomerExists(customerId: string): Customer {
-    const customer = this.iCustomerService.getCustomerById(customerId);
+  private async doesCustomerExists(customerId: string): Promise<Customer> {
+    const customer = await this.iCustomerService.getCustomerById(customerId);
     if (!customer) {
       throw new Error(`${this.errorContext} - ${ErrorMessage.CUSTOMER_NOT_FOUND}`);
     }
     return customer;
   }
 
-  doesCustomerHasMinAverageIncome(averageCapital: number): void {
+  async doesCustomerHasMinAverageIncome(averageCapital: number): Promise<void> {
     if (averageCapital < parseInt(process.env.MIN_TO_CHECK_ACCOUNT)) {
       throw new Error(`${this.errorContext} - ${ErrorMessage.INSUFFICIENT_FUNDS}`);
     }
   }
 
-  validate(createBankAccountDTO: CreateBankAccountDTO): void {
-    const customer = this.doesCustomerExists(createBankAccountDTO.customerId);
+  async validate(createBankAccountDTO: CreateBankAccountDTO): Promise<void> {
+    const customer = await this.doesCustomerExists(createBankAccountDTO.customerId);
     if (createBankAccountDTO.accountType === AccountType.CHECKING_ACCOUNT) {
       this.doesCustomerHasMinAverageIncome(customer.averageCapital);
     }

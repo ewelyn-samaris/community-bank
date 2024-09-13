@@ -1,4 +1,4 @@
-import { Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateFunctionaryDTO } from '../../../application/dtos/create-functionary.dto';
 import { IFunctionaryService } from '../../interfaces/functionary/functionary-service.interface';
 import { IAccountManagerService } from '../../interfaces/functionary/account-manager-service.interface';
@@ -15,22 +15,39 @@ export class FunctionaryService implements IFunctionaryService {
     @Inject('IAccountManagerService') private readonly iAccountManagerService: IAccountManagerService,
   ) {}
 
-  getFunctionaries(): Functionary[] {
-    const administrators: Administrator[] = this.iAdministratorService.getAdministrators();
-    const managers: AccountManager[] = this.iAccountManagerService.getManagers();
-    return [...administrators, ...managers];
-  }
-
-  getFunctionaryByCpf(cpf: string): Functionary {
-    const functionaries = this.getFunctionaries();
-    if (functionaries.length) {
-      return functionaries.find((functionary) => functionary.cpf === cpf);
+  private async save(functionary: Functionary): Promise<Functionary> {
+    if (functionary instanceof AccountManager) {
+      return await this.iAccountManagerService.save(functionary);
     }
+    return await this.iAdministratorService.save(functionary);
   }
 
-  createFunctionary(createFunctionaryDTO: CreateFunctionaryDTO): Functionary {
+  async getFunctionaries(): Promise<Functionary[]> {
+    const administrators: Administrator[] = await this.iAdministratorService.getAdministrators();
+    const managers: AccountManager[] = await this.iAccountManagerService.getManagers();
+    const functionaries = [...administrators, ...managers];
+    if (!functionaries.length) {
+      throw new NotFoundException(`No functionary found in the database`);
+    }
+    return functionaries;
+  }
+
+  async getFunctionaryByCpf(cpf: string): Promise<Functionary> {
+    let functionary: Functionary = await this.iAccountManagerService.getManagerByCpf(cpf);
+    if (functionary) return functionary;
+
+    functionary = await this.iAdministratorService.getAdministratorByCpf(cpf);
+
+    if (!functionary) {
+      throw new NotFoundException(`No functionary found for the given cpf #${cpf}`);
+    }
+    return functionary;
+  }
+
+  async createFunctionary(createFunctionaryDTO: CreateFunctionaryDTO): Promise<Functionary> {
     try {
-      return FunctionaryFactory.createFunctionary(createFunctionaryDTO);
+      const functionary = FunctionaryFactory.createFunctionary(createFunctionaryDTO);
+      return await this.save(functionary);
     } catch (error) {
       throw new InternalServerErrorException(`Cant create functionary. Internal Server Error: ${error}`);
     }

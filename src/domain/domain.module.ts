@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { CreateBankAccountValidationService } from './validators/create-bank-account-validation.service';
-import { BankAccountService } from './services/bank-accounts/bank-account.service';
+import { BankAccountService } from './services/bank-account.service';
 import { UpdateBankAccountTypeValidationService } from '../domain/validators/update-bank-account-type-validation.service';
 import { WithdrawService } from './services/transactions/withdraw.service';
 import { DepositService } from './services/transactions/deposit.service';
@@ -19,12 +19,13 @@ import { PaymentService } from './services/payments/payment.service';
 import { PixPaymentService } from './services/payments/pix-payment.service';
 import { BillPaymentService } from './services/payments/bill-payment.service';
 import { CnpjValidationService } from './validators/cnpj-validation.service';
-import { EventManager } from './models/event-manager.model';
-import { SavingAccountService } from './services/bank-accounts/saving-account.service';
-import { CheckingAccountService } from './services/bank-accounts/checking-account.service';
+import { EventManagerService } from './interfaces/event-manager.service';
 import { CreatePaymentValidationService } from './validators/create-payment-validation.service';
+import { SavingAccountObserverService } from './services/saving-account-observer.service';
+import { InfraStructureModule } from '../infrastructure/infrastruct.module';
 
 @Module({
+  imports: [InfraStructureModule],
   exports: [
     CreateBankAccountValidationService,
     CreateFunctionaryValidationService,
@@ -59,27 +60,21 @@ import { CreatePaymentValidationService } from './validators/create-payment-vali
     CpfValidationService,
     CnpjValidationService,
     UpdateBankAccountTypeValidationService,
-    SavingAccountService,
-    CheckingAccountService,
     {
       provide: 'IObserver',
-      useClass: SavingAccountService,
+      useClass: SavingAccountObserverService,
     },
     {
       provide: 'IEventManager',
-      useClass: EventManager,
+      useClass: EventManagerService,
     },
     {
-      provide: 'PixPaymentService',
-      useClass: PixPaymentService,
+      provide: 'ICustomerCreationRequestService',
+      useClass: CustomerCreationRequestService,
     },
     {
-      provide: 'BillPaymentService',
-      useClass: BillPaymentService,
-    },
-    {
-      provide: 'IPaymentService',
-      useClass: PaymentService,
+      provide: 'ICustomerService',
+      useClass: CustomerService,
     },
     {
       provide: 'IBankAccountService',
@@ -102,20 +97,24 @@ import { CreatePaymentValidationService } from './validators/create-payment-vali
       useClass: TransactionService,
     },
     {
+      provide: 'BillPaymentService',
+      useClass: BillPaymentService,
+    },
+    {
+      provide: 'PixPaymentService',
+      useClass: PixPaymentService,
+    },
+    {
+      provide: 'IPaymentService',
+      useClass: PaymentService,
+    },
+    {
       provide: 'IAccountManagerService',
       useClass: AccountManagerService,
     },
     {
       provide: 'IAdministratorService',
       useClass: AdministratorService,
-    },
-    {
-      provide: 'ICustomerCreationRequestService',
-      useClass: CustomerCreationRequestService,
-    },
-    {
-      provide: 'ICustomerService',
-      useClass: CustomerService,
     },
     {
       provide: 'IFunctionaryService',

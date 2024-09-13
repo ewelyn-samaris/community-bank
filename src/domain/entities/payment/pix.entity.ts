@@ -1,12 +1,17 @@
+import { ChildEntity } from 'typeorm';
 import { CreatePaymentDto } from '../../../application/dtos/create-payment.dto';
 import { Payment } from './payment.entity';
+import { Customer } from '../customer/customer.entity';
+import { BankAccount } from '../bank-account/bank-account.entity';
 
+@ChildEntity()
 export class Pix extends Payment {
-  pixCode: string;
-
-  constructor(createPixPaymentDto: CreatePaymentDto) {
-    super(createPixPaymentDto);
-    this.pixCode = createPixPaymentDto.pixCode;
-    Payment.payments.push(this);
+  constructor(
+    createPixPaymentDto: CreatePaymentDto,
+    customer: Customer,
+    account: BankAccount,
+    destinationAccount: BankAccount,
+  ) {
+    super(createPixPaymentDto, customer, account, destinationAccount);
   }
 }

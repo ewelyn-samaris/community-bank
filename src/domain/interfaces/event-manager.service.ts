@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { IObserver } from '../interfaces/observer.interface';
-import { IEventManager } from '../interfaces/event-manager.interface';
+import { IObserver } from './observer.interface';
+import { IEventManager } from './event-manager.interface';
 import { Customer } from '../entities/customer/customer.entity';
 
 @Injectable()
-export class EventManager implements IEventManager {
+export class EventManagerService implements IEventManager {
   private observers: IObserver[] = [];
 
   subscribe(observer: IObserver): void {

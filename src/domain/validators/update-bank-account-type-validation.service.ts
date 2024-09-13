@@ -24,8 +24,8 @@ export class UpdateBankAccountTypeValidationService {
     throw new NotFoundException(`${this.errorContext} -${errorMessage}`);
   }
 
-  private doesAccountExists(accountID: string): BankAccount {
-    const account = this.iBankAccountService.getAccountById(accountID);
+  private async doesAccountExists(accountID: string): Promise<BankAccount> {
+    const account = await this.iBankAccountService.getAccountById(accountID);
     if (!account) this.throwNotFountError(ErrorMessage.BANK_ACCOUNT_NOT_FOUND);
     return account;
   }
@@ -34,23 +34,23 @@ export class UpdateBankAccountTypeValidationService {
     if (currentAccount.type === accountTypeToChangeTo) this.throwError(ErrorMessage.ACCOUNT_TYPE_CANNOT_BE_SAME);
   }
 
-  private doesCustomerExist(customerID: string): void {
-    const customer = this.iCustomerService.getCustomerById(customerID);
+  private async doesCustomerExist(customerID: string): Promise<void> {
+    const customer = await this.iCustomerService.getCustomerById(customerID);
     if (!customer) {
       this.throwNotFountError(ErrorMessage.CUSTOMER_NOT_FOUND);
     }
   }
 
-  private doesCustomerExistAndOwnsAccount(account: BankAccount, customerId: string): void {
-    this.doesCustomerExist(customerId);
-    if (account.customerId !== customerId) {
+  private async doesCustomerExistAndOwnsAccount(account: BankAccount, customerId: string): Promise<void> {
+    await this.doesCustomerExist(customerId);
+    if (account.customer.id !== customerId) {
       this.throwError(ErrorMessage.ACCOUNT_DOES_NOT_BELONG_TO_CUSTOMER);
     }
   }
 
-  validate(updateBankAccountTypeDTO: UpdateBankAccountTypeDTO, accountId: string): void {
-    const account = this.doesAccountExists(accountId);
+  async validate(updateBankAccountTypeDTO: UpdateBankAccountTypeDTO, accountId: string): Promise<void> {
+    const account = await this.doesAccountExists(accountId);
     this.isAccountTypeDifferentFromCurrent(updateBankAccountTypeDTO.accountTypeToChangeTo, account);
-    this.doesCustomerExistAndOwnsAccount(account, updateBankAccountTypeDTO.customerId);
+    await this.doesCustomerExistAndOwnsAccount(account, updateBankAccountTypeDTO.customerId);
   }
 }

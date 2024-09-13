@@ -6,6 +6,6 @@ import 'dotenv/config';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
-  await app.listen(parseInt(process.env.APP_PORT));
+  await app.listen(3000);
 }
 bootstrap();

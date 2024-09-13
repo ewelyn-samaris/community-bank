@@ -3,10 +3,11 @@ import { CreateBankAccountDTO } from '../../application/dtos/create-bank-account
 import { BankAccount } from '../entities/bank-account/bank-account.entity';
 
 export interface IBankAccountService {
-  getAll(): BankAccount[];
-  getAccountById(accountID: string): BankAccount;
-  getAccountsByCustomerID(customerID: string): BankAccount[];
-  createBankAccount(createBankAccountDTO: CreateBankAccountDTO): BankAccount;
-  modifyAccountType(updateBankAccountTypeDTO: UpdateBankAccountTypeDTO, accountId: string): BankAccount;
-  softDeleteAccount(accountId: string): void;
+  save(account: BankAccount): Promise<BankAccount>;
+  getAll(): Promise<BankAccount[]>;
+  getAccountById(accountId: string): Promise<BankAccount>;
+  getAccountsByCustomerId(customerId: string): Promise<BankAccount[]>;
+  createBankAccount(createBankAccountDto: CreateBankAccountDTO): Promise<BankAccount>;
+  modifyAccountType(updateBankAccountTypeDto: UpdateBankAccountTypeDTO, accountId: string): Promise<BankAccount>;
+  softRemoveAccount(account: BankAccount): Promise<void>;
 }

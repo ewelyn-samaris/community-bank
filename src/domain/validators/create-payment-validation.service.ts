@@ -12,8 +12,8 @@ export class CreatePaymentValidationService {
     @Inject('IBankAccountService') private readonly ibankAccountService: IBankAccountService,
   ) {}
 
-  private doesCustomerExistsAndOwnsAccount(customerId: string, accountId: string): void {
-    const customer = this.icustomerService.getCustomerById(customerId);
+  private async doesCustomerExistsAndOwnsAccount(customerId: string, accountId: string): Promise<void> {
+    const customer = await this.icustomerService.getCustomerById(customerId);
     if (!customer) {
       throw new Error(`${ErrorContext.CREATE_PAYMENT} - ${ErrorMessage.CUSTOMER_NOT_FOUND}`);
     }
@@ -23,15 +23,15 @@ export class CreatePaymentValidationService {
     }
   }
 
-  private doesBeneficiaryAccountExists(beneficiaryAccountId: string): void {
-    const beneficiaryAccount = this.ibankAccountService.getAccountById(beneficiaryAccountId);
+  private async doesBeneficiaryAccountExists(beneficiaryAccountId: string): Promise<void> {
+    const beneficiaryAccount = await this.ibankAccountService.getAccountById(beneficiaryAccountId);
     if (!beneficiaryAccount) {
       throw new Error(`${ErrorContext.CREATE_PAYMENT} - ${ErrorMessage.BANK_ACCOUNT_NOT_FOUND}`);
     }
   }
 
-  validate(createPaymentDto: CreatePaymentDto): void {
-    this.doesCustomerExistsAndOwnsAccount(createPaymentDto.customerId, createPaymentDto.accountId);
-    this.doesBeneficiaryAccountExists(createPaymentDto.beneficiaryAccountId);
+  async validate(createPaymentDto: CreatePaymentDto): Promise<void> {
+    await this.doesCustomerExistsAndOwnsAccount(createPaymentDto.customerId, createPaymentDto.accountId);
+    await this.doesBeneficiaryAccountExists(createPaymentDto.beneficiaryAccountId);
   }
 }

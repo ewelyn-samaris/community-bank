@@ -2,6 +2,8 @@ import { AccountManager } from '../../entities/functionary/account-manager.entit
 import { ManagedRegion } from '../../enums/managed-regions.enum';
 
 export interface IAccountManagerService {
-  getManagers(): AccountManager[];
-  getManagerByRegion(region: ManagedRegion): AccountManager;
+  save(manager: AccountManager): Promise<AccountManager>;
+  getManagers(): Promise<AccountManager[]>;
+  getManagerByRegion(region: ManagedRegion): Promise<AccountManager>;
+  getManagerByCpf(cpf: string): Promise<AccountManager>;
 }

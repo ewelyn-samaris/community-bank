@@ -14,9 +14,9 @@ export class FunctionaryController {
   constructor(@Inject('IFunctionaryService') private readonly iFunctionaryService: IFunctionaryService) {}
 
   @Get()
-  getAllFunctionaries(): AppResponse {
+  async getAllFunctionaries(): Promise<AppResponse<Functionary>> {
     try {
-      const functionaries = this.iFunctionaryService.getFunctionaries();
+      const functionaries = await this.iFunctionaryService.getFunctionaries();
       return {
         statusCode: HttpStatus.OK,
         message: 'All functionaries retrieved successfully',
@@ -34,9 +34,9 @@ export class FunctionaryController {
 
   @Get(':cpf')
   @UsePipes(NationalIdentifierValidationPipe)
-  getFunctionaryById(@Param() cpf: string): AppResponse {
+  async getFunctionaryById(@Param() cpf: string): Promise<AppResponse<Functionary>> {
     try {
-      this.iFunctionaryService.getFunctionaryByCpf(cpf);
+      await this.iFunctionaryService.getFunctionaryByCpf(cpf);
     } catch (error) {
       return {
         statusCode: HttpStatus.NOT_FOUND,
@@ -48,9 +48,9 @@ export class FunctionaryController {
 
   @Post()
   @UsePipes(CreateFunctionaryValidationPipe)
-  create(@Body() createFunctionaryDTO: CreateFunctionaryDTO): AppResponse {
+  async create(@Body() createFunctionaryDTO: CreateFunctionaryDTO): Promise<AppResponse<Functionary>> {
     try {
-      const functionary: Functionary = this.iFunctionaryService.createFunctionary(createFunctionaryDTO);
+      const functionary: Functionary = await this.iFunctionaryService.createFunctionary(createFunctionaryDTO);
       return {
         statusCode: HttpStatus.CREATED,
         message: 'Functionary created successfully',

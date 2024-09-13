@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { BankAccount } from '../../entities/bank-account/bank-account.entity';
-import { ITransaction } from 'src/domain/interfaces/transaction/transaction.interface';
+import { ITransaction } from '../../interfaces/transaction/transaction.interface';
 
 @Injectable()
 export class TransferService implements ITransaction {

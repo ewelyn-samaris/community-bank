@@ -7,36 +7,34 @@ import { IBankAccountService } from '../../interfaces/bank-account-service.inter
 import { TransactionType } from '../../enums/transaction-type.enum';
 import { BankAccount } from '../../entities/bank-account/bank-account.entity';
 import { ITransaction } from '../../interfaces/transaction/transaction.interface';
+import { Customer } from '../../entities/customer/customer.entity';
+import { ICustomerService } from '../../interfaces/customer-service.interface';
+import { ITransactionRepository } from '../../../infrastructure/interfaces/transaction-repository.interface';
 
 @Injectable()
 export class TransactionService implements ITransactionService {
   private DEFAULT_BANK_STATEMENT_LIMIT: number = 5;
 
   constructor(
+    @Inject('ITransactionRepository') private readonly iTransactionRepository: ITransactionRepository,
+    @Inject('ICustomerService') private readonly icustomerService: ICustomerService,
     @Inject('IBankAccountService') private readonly iBankAccountService: IBankAccountService,
     @Inject('IWithdrawService') private readonly iWithdrawService: ITransaction,
     @Inject('IDepositService') private readonly iDepositService: ITransaction,
     @Inject('ITransferService') private readonly iTransferService: ITransaction,
   ) {}
 
-  private getTransactions(): Transaction[] {
-    const transactions = Transaction.transactions;
-    if (!transactions.length) {
-      throw new NotFoundException(`No transactions found`);
-    }
-    return transactions;
+  private async save(transaction: Transaction): Promise<Transaction> {
+    return await this.iTransactionRepository.save(transaction);
   }
 
-  private createTransaction(createTransactionCommandData: CreateTransactionDTO): Transaction {
-    return TransactionFactory.create(createTransactionCommandData);
-  }
-
-  private getTransactionsByAccountId(accountId: string): Transaction[] {
-    const transactions = this.getTransactions().filter((transaction) => transaction.accountId === accountId);
-    if (!transactions.length) {
-      throw new NotFoundException(`No transactions found for the given accountId #${accountId}`);
-    }
-    return transactions;
+  private createTransaction(
+    createTransactionDTO: CreateTransactionDTO,
+    customer: Customer,
+    account: BankAccount,
+    destinationAccount?: BankAccount,
+  ): Transaction {
+    return TransactionFactory.create(createTransactionDTO, customer, account, destinationAccount);
   }
 
   private processTransaction(account: BankAccount, amount: number, destinationAccount?: BankAccount) {
@@ -47,23 +45,32 @@ export class TransactionService implements ITransactionService {
     };
   }
 
-  getLastTransactionsByAccountID(accountID: string): Transaction[] {
-    return this.getTransactionsByAccountId(accountID).slice(-this.DEFAULT_BANK_STATEMENT_LIMIT);
+  async getLastTransactionsByAccountId(accountId: string): Promise<Transaction[]> {
+    const transactions = await this.iTransactionRepository.findByAccountId(accountId);
+    if (!transactions.length) {
+      throw new NotFoundException(`No transactions found for the given accountId #${accountId}`);
+    }
+    return transactions.slice(-this.DEFAULT_BANK_STATEMENT_LIMIT);
   }
 
-  execute(createTransactionDto: CreateTransactionDTO): Transaction {
-    const account = this.iBankAccountService.getAccountById(createTransactionDto.accountId);
+  async execute(createTransactionDto: CreateTransactionDTO): Promise<Transaction> {
+    const customer = await this.icustomerService.getCustomerById(createTransactionDto.customerId);
+    const account = await this.iBankAccountService.getAccountById(createTransactionDto.accountId);
     const destinationAccount = createTransactionDto.destinationAccountId
-      ? this.iBankAccountService.getAccountById(createTransactionDto.destinationAccountId)
+      ? await this.iBankAccountService.getAccountById(createTransactionDto.destinationAccountId)
       : null;
 
     this.processTransaction(account, createTransactionDto.amount, destinationAccount)[createTransactionDto.type]();
     try {
-      const transaction = this.createTransaction(createTransactionDto);
-      account.transactionsIds.push(transaction.id);
+      const transaction = this.createTransaction(createTransactionDto, customer, account, destinationAccount);
+      await this.save(transaction);
 
-      if (createTransactionDto.type === TransactionType.TRANSFER) {
-        destinationAccount.transactionsIds.push(transaction.id);
+      account.transactions.push(transaction);
+      await this.iBankAccountService.save(account);
+
+      if (transaction.type === TransactionType.TRANSFER) {
+        destinationAccount.transactions.push(transaction);
+        await this.iBankAccountService.save(destinationAccount);
       }
 
       return transaction;

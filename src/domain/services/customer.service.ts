@@ -1,4 +1,4 @@
-import { Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateCustomerDTO } from '../../application/dtos/create-customer.dto';
 import { ICustomerService } from '../interfaces/customer-service.interface';
 import { IAccountManagerService } from '../interfaces/functionary/account-manager-service.interface';
@@ -8,62 +8,92 @@ import { PersonalCustomer } from '../entities/customer/personal-customer.entity'
 import { BusinessCustomer } from '../entities/customer/business-customer.entity';
 import { CustomerFactory } from '../factories/customer/customer.factory';
 import { IEventManager } from '../interfaces/event-manager.interface';
+import { ICustomerRepository } from '../../infrastructure/interfaces/customer-repository.interface';
 
 @Injectable()
 export class CustomerService implements ICustomerService {
   constructor(
+    @Inject('IBusinessCustomerRepository')
+    private readonly iBusinessCustomerRepository: ICustomerRepository<BusinessCustomer>,
+    @Inject('IPersonalCustomerRepository')
+    private readonly iPersonalCustomerRepository: ICustomerRepository<PersonalCustomer>,
     @Inject('ICustomerCreationRequestService')
     private readonly iCustomerCreationRequestService: ICustomerCreationRequestService,
     @Inject('IAccountManagerService') private readonly iAccountManagerService: IAccountManagerService,
     @Inject('IEventManager') private readonly iEventManager: IEventManager,
   ) {}
 
-  private createCustomerCreationRequest(createCustomerDTO: CreateCustomerDTO): void {
-    this.iCustomerCreationRequestService.createCustomerCreationRequest(createCustomerDTO);
+  async save(customer: Customer): Promise<Customer> {
+    if (customer instanceof BusinessCustomer) {
+      return await this.iBusinessCustomerRepository.save(customer as BusinessCustomer);
+    }
+    return await this.iPersonalCustomerRepository.save(customer as PersonalCustomer);
   }
 
-  getCustomers(): Customer[] {
-    const customers = [...PersonalCustomer.personalCustomers, ...BusinessCustomer.businessCustomers];
+  async getCustomers(): Promise<Customer[]> {
+    const personals = await this.iPersonalCustomerRepository.findAll();
+    const businesses = await this.iBusinessCustomerRepository.findAll();
+    const customers = [...personals, ...businesses];
+
+    if (!customers.length) {
+      throw new NotFoundException(`No customers found in the database`);
+    }
     return customers;
   }
 
-  getCustomerById(id: string): Customer {
-    const customer = this.getCustomers().find((customer) => customer.id === id);
+  async getCustomerById(id: string): Promise<Customer> {
+    let customer = await this.iBusinessCustomerRepository.findOneById(id);
+    if (customer) {
+      return customer;
+    }
+    customer = await this.iPersonalCustomerRepository.findOneById(id);
+    if (!customer) {
+      throw new NotFoundException(`No customer found with the given id #${id}`);
+    }
     return customer;
   }
 
-  getCustomerByNationalIdentifier(nationalIdentifier: string): Customer {
-    const customer = this.getCustomers().find((customer) => customer.nationalIdentifier === nationalIdentifier);
+  async getCustomerByNationalIdentifier(nationalIdentifier: string): Promise<Customer> {
+    let customer = await this.iBusinessCustomerRepository.findOneByNationalIdentifier(nationalIdentifier);
+    if (customer) {
+      return customer;
+    }
+
+    customer = await this.iPersonalCustomerRepository.findOneByNationalIdentifier(nationalIdentifier);
+    if (!customer) {
+      throw new NotFoundException(`No customer found for the given identifier #${nationalIdentifier}`);
+    }
     return customer;
   }
 
-  getCustomersByManagerId(managerId: string): Customer[] {
-    const customers = this.getCustomers()?.filter((customer) => customer.accountManagerId === managerId);
-    return customers;
-  }
-
-  softDeleteCustomer(id: string): void {
-    const customer = this.getCustomerById(id);
+  async softRemoveCustomer(id: string): Promise<void> {
+    const customer = await this.getCustomerById(id);
     try {
-      customer.updateStatusBeforeSoftDelete();
-      customer.deletedAt = new Date();
+      customer instanceof BusinessCustomer
+        ? await this.iBusinessCustomerRepository.softRemove(customer as BusinessCustomer)
+        : await this.iPersonalCustomerRepository.softRemove(customer as PersonalCustomer);
+      await this.save(customer);
     } catch (error) {
-      throw new InternalServerErrorException(`Can't soft deleting customer. Internal server error: ${error}`);
+      throw new InternalServerErrorException(`Can't delete customer. Internal server error: ${error}`);
     }
   }
 
-  createCustomer(createCustomerDTO: CreateCustomerDTO): Customer {
-    this.createCustomerCreationRequest(createCustomerDTO);
-    const manager = this.iAccountManagerService.getManagerByRegion(createCustomerDTO.region);
+  async createCustomer(createCustomerDTO: CreateCustomerDTO): Promise<Customer> {
+    const customerCreationRequest = await this.iCustomerCreationRequestService.createCustomerCreationRequest(
+      createCustomerDTO,
+    );
+    const manager = await this.iAccountManagerService.getManagerByRegion(createCustomerDTO.region);
     if (!manager) {
       throw new InternalServerErrorException(
         `Can't create customer, no manager found for region. Internal server error`,
       );
     }
 
+    const customer: Customer = CustomerFactory.create(createCustomerDTO, manager);
+    await this.iCustomerCreationRequestService.closeRequest(customerCreationRequest);
+
     try {
-      const customer: Customer = CustomerFactory.create(createCustomerDTO, manager.id);
-      manager.customersIds.push(customer.id);
+      await this.save(customer);
       this.iEventManager.notify(customer);
       return customer;
     } catch (error) {

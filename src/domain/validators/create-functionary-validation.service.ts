@@ -20,16 +20,16 @@ export class CreateFunctionaryValidationService {
     }
   }
 
-  private doesFunctionaryAlreadyExist(cpf: string): void {
-    const existfunctionary = this.iFunctionaryService.getFunctionaryByCpf(cpf);
+  private async doesFunctionaryAlreadyExist(cpf: string): Promise<void> {
+    const existfunctionary = await this.iFunctionaryService.getFunctionaryByCpf(cpf);
     if (existfunctionary) {
       throw new Error(`${this.errorContext} - ${ErrorMessage.FUNCTIONARY_ALREADY_EXISTS}`);
     }
   }
 
-  validate(createFunctionaryDTO: CreateFunctionaryDTO): void {
+  async validate(createFunctionaryDTO: CreateFunctionaryDTO): Promise<void> {
     const dateStringAttribute = 'admittedOn';
-    this.doesFunctionaryAlreadyExist(createFunctionaryDTO.cpf);
+    await this.doesFunctionaryAlreadyExist(createFunctionaryDTO.cpf);
     this.isValidAddimissionDate(dateStringAttribute, createFunctionaryDTO.admittedOn);
   }
 }

@@ -1,16 +1,19 @@
 import { ManagedRegion } from '../../enums/managed-regions.enum';
 import { Functionary } from './functionary.entity';
 import { CreateFunctionaryDTO } from '../../../application/dtos/create-functionary.dto';
+import { Column, Entity, OneToMany } from 'typeorm';
+import { Customer } from '../customer/customer.entity';
 
+@Entity('account_managers')
 export class AccountManager extends Functionary {
-  static managers: AccountManager[] = [];
+  @Column({ type: 'enum', enum: ManagedRegion })
   managedRegion: ManagedRegion;
-  customersIds?: string[] = [];
 
-  constructor(functionaryDTO: CreateFunctionaryDTO) {
-    super(functionaryDTO);
-    this.managedRegion = functionaryDTO.managedRegion;
+  @OneToMany(() => Customer, (customer) => customer.accountManager, { nullable: true, eager: true })
+  customers?: Customer[];
 
-    AccountManager.managers.push(this);
+  constructor(createAccountManagerDto?: CreateFunctionaryDTO) {
+    super(createAccountManagerDto);
+    if (createAccountManagerDto) this.managedRegion = createAccountManagerDto?.managedRegion;
   }
 }
