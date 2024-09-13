@@ -31,9 +31,8 @@ export class BillPaymentService implements IPaymentStrategy {
   }
 
   process(account: BankAccount, beneficiaryAccount: BankAccount, amount: number): void {
-    if (account.type === AccountType.CHECKING_ACCOUNT) {
-      return this.billPaymentFromChecking(account as CheckingAccount, beneficiaryAccount, amount);
-    }
-    return this.billPaymentFromSaving(account, beneficiaryAccount, amount);
+    account.type === AccountType.CHECKING_ACCOUNT
+      ? this.billPaymentFromChecking(account as CheckingAccount, beneficiaryAccount, amount)
+      : this.billPaymentFromSaving(account as SavingAccount, beneficiaryAccount, amount);
   }
 }

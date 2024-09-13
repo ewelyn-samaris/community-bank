@@ -1,8 +1,6 @@
-import { Injectable } from '@nestjs/common';
 import { ErrorContext } from '../enums/error-context.enum';
 import { ErrorMessage } from '../enums/error-message.enum';
 
-@Injectable()
 export class CpfValidationService {
   static isInvalidCPFWithEqualDigits(cpf: string, validationContext: ErrorContext): void {
     const ALL_NUMBERS_IDENTICALS: RegExp = /^(\d)\1{10}$/;

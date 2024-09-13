@@ -24,9 +24,8 @@ export class WithdrawService implements ITransaction {
   }
 
   process(account: BankAccount, amount: number): void {
-    if (account.type === AccountType.CHECKING_ACCOUNT) {
-      return this.withdrawFromChecking(account as CheckingAccount, amount);
-    }
-    this.withdrawFromSaving(account, amount);
+    account.type === AccountType.CHECKING_ACCOUNT
+      ? this.withdrawFromChecking(account as CheckingAccount, amount)
+      : this.withdrawFromSaving(account as SavingAccount, amount);
   }
 }

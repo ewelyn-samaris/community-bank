@@ -10,12 +10,12 @@ export class CreateCustomerValidationService {
 
   constructor(@Inject('ICustomerService') private readonly iCustomerService: ICustomerService) {}
 
-  private doesCustomerAlreadyExist(nationalIdentifier: string): void {
-    const existingCustomer: Customer = this.iCustomerService.getCustomerByNationalIdentifier(nationalIdentifier);
+  private async doesCustomerAlreadyExist(nationalIdentifier: string): Promise<void> {
+    const existingCustomer: Customer = await this.iCustomerService.getCustomerByNationalIdentifier(nationalIdentifier);
     if (existingCustomer) throw new Error(`${this.errorContext} - ${ErrorMessage.CUSTOMER_ALREADY_EXISTS}`);
   }
 
-  validate(nationalIdentifier: string): void {
-    this.doesCustomerAlreadyExist(nationalIdentifier);
+  async validate(nationalIdentifier: string): Promise<void> {
+    await this.doesCustomerAlreadyExist(nationalIdentifier);
   }
 }
