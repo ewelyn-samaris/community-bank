@@ -1,12 +1,10 @@
+import { Entity } from 'typeorm';
 import { CreateFunctionaryDTO } from '../../../application/dtos/create-functionary.dto';
 import { Functionary } from './functionary.entity';
 
+@Entity('administrators')
 export class Administrator extends Functionary {
-  static administrators: Administrator[] = [];
-
-  constructor(functionaryDTO: CreateFunctionaryDTO) {
-    super(functionaryDTO);
-
-    Administrator.administrators.push(this);
+  constructor(createAdministratorDto?: CreateFunctionaryDTO) {
+    super(createAdministratorDto);
   }
 }

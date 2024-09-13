@@ -1,25 +1,43 @@
 import { TransactionType } from '../../enums/transaction-type.enum';
-import { v4 as uuidv4 } from 'uuid';
 import { TransactionStatus } from '../../enums/transaction-status.enum';
 import { CreateTransactionDTO } from '../../../application/dtos/create-transaction.dto';
+import { BankAccount } from '../bank-account/bank-account.entity';
+import { Customer } from '../customer/customer.entity';
+import { Column, Entity, JoinColumn } from 'typeorm';
+import { CreateDateColumn, ManyToOne } from 'typeorm';
+import { PrimaryGeneratedColumn, TableInheritance } from 'typeorm';
 
+@Entity('transactions')
+@TableInheritance({ column: { type: 'varchar', name: 'type' } })
 export abstract class Transaction {
-  static transactions: Transaction[] = [];
+  @PrimaryGeneratedColumn('uuid')
   id: string;
-  type: TransactionType;
+
+  @Column()
   amount: number;
+
+  @CreateDateColumn()
   createdAt: Date;
-  customerId: string;
-  accountId: string;
+
+  @Column()
+  customer: Customer;
+
+  @ManyToOne(() => BankAccount)
+  @JoinColumn({ name: 'account_id' })
+  account: BankAccount;
+
+  @Column({ type: 'enum', enum: TransactionType })
+  type: TransactionType;
+
+  @Column({ type: 'enum', enum: TransactionStatus, default: TransactionStatus.PROCESSED })
   status: TransactionStatus;
 
-  constructor(createTransactionDto: CreateTransactionDTO) {
-    this.id = uuidv4();
-    this.customerId = createTransactionDto.customerId;
-    this.type = createTransactionDto.type;
-    this.amount = createTransactionDto.amount;
-    this.accountId = createTransactionDto.accountId;
-    this.createdAt = new Date();
-    this.status = TransactionStatus.PROCESSED;
+  constructor(createTransactionDto?: CreateTransactionDTO, customer?: Customer, account?: BankAccount) {
+    if (customer) this.customer = customer;
+    if (account) this.account = account;
+    if (createTransactionDto) {
+      this.amount = createTransactionDto?.amount;
+      this.type = createTransactionDto?.type;
+    }
   }
 }
