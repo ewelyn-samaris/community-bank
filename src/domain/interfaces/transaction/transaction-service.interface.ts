@@ -2,6 +2,6 @@ import { CreateTransactionDTO } from '../../../application/dtos/create-transacti
 import { Transaction } from '../../entities/transaction/transaction.entity';
 
 export interface ITransactionService {
-  getLastTransactionsByAccountID(accountID: string): Transaction[];
-  execute(createTransactionDTO: CreateTransactionDTO): Transaction;
+  getLastTransactionsByAccountId(accountID: string): Promise<Transaction[]>;
+  execute(createTransactionDTO: CreateTransactionDTO): Promise<Transaction>;
 }

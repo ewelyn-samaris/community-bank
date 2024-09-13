@@ -1,5 +1,7 @@
 import { Administrator } from '../../entities/functionary/administrator.entity';
 
 export interface IAdministratorService {
-  getAdministrators(): Administrator[];
+  save(administrator: Administrator): Promise<Administrator>;
+  getAdministrators(): Promise<Administrator[]>;
+  getAdministratorByCpf(cpf: string): Promise<Administrator>;
 }
